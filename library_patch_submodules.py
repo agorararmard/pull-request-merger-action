@@ -138,6 +138,11 @@ def main(args):
         n_branch = 'pullrequest/temp/{0}/{1}/{2}'.format(pull_request_id,str(git_sequence),v_branch)
         git('push -f origin {0}:{1}'.format(v_branch,n_branch), git_root)
 
+    print()
+    print("Now Pushing master")
+    print('-'*20, flush=True)
+    n_branch = 'pullrequest/temp/{0}/{1}/master'.format(pull_request_id,str(git_sequence))
+    git('push -f origin master:{0}'.format(n_branch), git_root)
 
 
 if __name__ == "__main__":
