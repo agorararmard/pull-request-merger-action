@@ -16,7 +16,7 @@ jobs:
           fetch-depth: '50'
 
       - name: Run The Pull Request Merger
-        uses: agorararmard/pull-request-merger-action@main
+        uses: agorararmard/skywater-pdk-modules-pull-request-backporter-action@main
 
       - name: Label Commenter
         uses: peaceiris/actions-label-commenter@v1
