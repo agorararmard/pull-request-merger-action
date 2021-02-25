@@ -41,12 +41,14 @@ def header(l, s, *args, **kw):
 
 
 def main(args):
-    assert len(args) == 1
+    assert len(args) == 2
 
     patchfile = os.path.abspath(args.pop(0))
+    pull_request_id = args.pop(1)
 
     assert os.path.exists(patchfile), patchfile
     assert os.path.isfile(patchfile), patchfile
+    assert pull_request_id.isdigit(), pull_request_id
 
     print()
     print()
@@ -116,6 +118,22 @@ def main(args):
     git('branch master', git_root)
 
     print('='*75, flush=True)
+    git_sequence = -1
+    git_matching_branches = subprocess.check_output('git branch | grep "pullrequest/temp/{0}/"'.format(pull_request_id), shell=True)
+    for matching_branch in git_matching_branches:
+        git_sequence = max(int(matching_branch.split("/")[3]), git_sequence)
+    git_sequence = int(git_sequence) + 1
+
+    for i, v in enumerate(versions):
+        ov = out_v(v, versions)
+        v_branch = "branch-{}.{}.{}".format(*ov)
+        v_tag = "v{}.{}.{}".format(*ov)
+        print()
+        print("Now Pushing", (v_branch, v_tag))
+        print('-'*20, flush=True)
+        # Checkout the right branch
+        n_branch = 'pullrequest/temp/{0}/{1}/{2}'.format(pull_request_id,str(git_sequence),v_branch)
+        git('push -f origin {0}:{1}'.format(v_branch,n_branch), git_root)
 
 
 
