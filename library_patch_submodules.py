@@ -119,7 +119,10 @@ def main(args):
 
     print('='*75, flush=True)
     git_sequence = -1
-    git_matching_branches = subprocess.check_output('git branch | grep "pullrequest/temp/{0}/"'.format(pull_request_id), shell=True)
+    all_branches = subprocess.check_output('git branch' , shell=True).decode('utf-8').split()
+    git_matching_branches = [br for br in all_branches if "pullrequest/temp/{0}/".format(pull_request_id) in br]
+
+
     for matching_branch in git_matching_branches:
         git_sequence = max(int(matching_branch.split("/")[3]), git_sequence)
     git_sequence = int(git_sequence) + 1
