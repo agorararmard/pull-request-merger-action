@@ -105,6 +105,7 @@ def main(args):
         if v == versions[apply_idx]:
             if git('am {}'.format(patchfile), git_root, can_fail=True) == False:
                 apply_idx+=1
+                git('am --abort', git_root)
             continue
 
         # Create the merge commit
