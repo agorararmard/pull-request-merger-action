@@ -119,12 +119,14 @@ def main(args):
 
     print('='*75, flush=True)
     git_sequence = -1
-    all_branches = subprocess.check_output('git branch' , shell=True).decode('utf-8').split()
-    git_matching_branches = [br for br in all_branches if "pullrequest/temp/{0}/".format(pull_request_id) in br]
+    all_branches = subprocess.check_output('git branch -r' , shell=True).decode('utf-8').split()
+    print("All branchs:", all_branches)
+
+    git_matching_branches = [br for br in all_branches if "origin/pullrequest/temp/{0}/".format(pull_request_id) in br]
 
 
     for matching_branch in git_matching_branches:
-        git_sequence = max(int(matching_branch.split("/")[3]), git_sequence)
+        git_sequence = max(int(matching_branch.split("/")[4]), git_sequence)
     git_sequence = int(git_sequence) + 1
 
     for i, v in enumerate(versions):
@@ -136,12 +138,13 @@ def main(args):
         print('-'*20, flush=True)
         # Checkout the right branch
         n_branch = 'pullrequest/temp/{0}/{1}/{2}'.format(pull_request_id,str(git_sequence),v_branch)
+        print("Now Pushing", n_branch)
         git('push -f origin {0}:{1}'.format(v_branch,n_branch), git_root)
 
     print()
-    print("Now Pushing master")
-    print('-'*20, flush=True)
     n_branch = 'pullrequest/temp/{0}/{1}/master'.format(pull_request_id,str(git_sequence))
+    print("Now Pushing", n_branch)
+    print('-'*20, flush=True)
     git('push -f origin master:{0}'.format(n_branch), git_root)
 
 
