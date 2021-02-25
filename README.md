@@ -1,4 +1,4 @@
-# skywater-pdk-libs-pull-request-merger-action
+# skywater-pdk-modules-pull-request-backporter-action
 This is a Pull Request Merger Action that works on repos with release branch structure. This will overwrite the master branch to match the latest release branch everytime.
 
 This is mainly done for the google/skywater-pdk-libs-\* repositories.
@@ -31,7 +31,7 @@ In Pull-Request Invoked Workflow, add the following:
           fetch-depth: '50'
 
       - name: Run The Pull Request Merger
-        uses: agorararmard/skywater-pdk-libs-pull-request-merger-action@master
+        uses: agorararmard/skywater-pdk-modules-pull-request-backporter-action@main
 ```
 
 # Examples
