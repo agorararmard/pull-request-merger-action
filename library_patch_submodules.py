@@ -44,7 +44,7 @@ def main(args):
     assert len(args) == 2
 
     patchfile = os.path.abspath(args.pop(0))
-    pull_request_id = args.pop(1)
+    pull_request_id = args.pop(0)
 
     assert os.path.exists(patchfile), patchfile
     assert os.path.isfile(patchfile), patchfile
