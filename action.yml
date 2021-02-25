@@ -1,4 +1,4 @@
-name: 'Pull Request Merger on Releases'
+name: 'Skywater PDK Libraries Pull Request Merger on Release Branches'
 description: 'This is a Pull Request Merger Action that works on repos with release branch structure.'
 runs:
   using: "composite"
