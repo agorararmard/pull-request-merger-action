@@ -76,3 +76,7 @@ def handle_pull_requests(args):
         patchfile='{0}/{1}'.format(external_path,pull_request_id)
         library_patch_submodules(patchfile, pull_request_id, repo_name,access_token,commit_hash)
         reset_branches()
+
+    
+if __name__ == "__main__":
+    sys.exit(handle_pull_requests(sys.argv[1:]))
