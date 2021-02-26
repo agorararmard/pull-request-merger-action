@@ -93,10 +93,10 @@ def previous_v(v, versions):
     assert i > 0, (i, ov, vers)
     return vers[i-1]
 
-def reset_branches():
+def reset_branches(git_root):
     all_local_branches = subprocess.check_output('git branch' , shell=True).decode('utf-8').split()
     for branch in all_local_branches:
-        git('reset --hard origin/{0}'.format(branch))
+        git('reset --hard origin/{0}'.format(branch), git_root)
 
 
 def hash_exists(hash, branch,git_root):
