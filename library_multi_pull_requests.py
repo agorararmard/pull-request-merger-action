@@ -42,6 +42,7 @@ def header(l, s, *args, **kw):
 
 
 def handle_pull_requests(args):
+    print(args)
     assert len(args) == 3
     repo_name = args.pop(0)
     access_token = args.pop(0)

@@ -103,7 +103,7 @@ def hash_exists(hash, branch,git_root):
         git('clean -f', git_root)
         git('clean -x -f', git_root)
         git('checkout {0}'.format(branch), git_root)
-        if git('branch --contains {hash}', can_fail=True, git_root) == False:
+        if git('branch --contains {0}'.format(hash), git_root, can_fail=True) == False:
             return False
         else:
             return True
