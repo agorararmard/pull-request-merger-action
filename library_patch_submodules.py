@@ -26,6 +26,8 @@ import subprocess
 import sys
 import tempfile
 import time
+import requests
+import json
 
 from library_submodules import *
 
@@ -154,7 +156,10 @@ def main(args):
     print('-'*20, flush=True)
     git('push -f origin master:{0}'.format(n_branch), git_root)
 
-    run('curl -s -H "Authorization: token {0}" -X POST -d '.format(access_token)+'\'{'+'"body": "The latest commit of this PR, commit {0} has been applied to the branches, please check the links here {1}"'.format( commit_hash, n_branch_links)+'}\''+ '"https://api.github.com/repos/{0}/issues/{1}/comments"'.format( repo_name, pull_request_id))
+    url     = 'https://api.github.com/repos/{0}/issues/{1}/comments'.format( repo_name, pull_request_id)
+    payload = { 'body' : 'The latest commit of this PR, commit {0} has been applied to the branches, please check the links here {1}'.format( commit_hash, n_branch_links) }
+    headers = {'Authorization' : 'token {0}'.format(access_token)}
+    res = requests.post(url, data=json.dumps(payload), headers=headers)
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
