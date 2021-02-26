@@ -9,5 +9,5 @@ runs:
     - name: Run The Pull Request Merger
       run: |
         cd $GITHUB_WORKSPACE
-        python3 ${{ github.action_path }}/library_multi_pull_requests.py ${{ github.event.repository.name }} ${{ github.token }} $EXTERNAL_PATH 
+        python3 ${{ github.action_path }}/library_multi_pull_requests.py ${{ github.event.repository.full_name }} ${{ github.token }} $EXTERNAL_PATH 
       shell: bash

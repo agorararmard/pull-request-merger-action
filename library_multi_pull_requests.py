@@ -66,17 +66,32 @@ def handle_pull_requests(args):
 
     print('-'*20, flush=True)
     all_open_pull_requests = subprocess.check_output("curl -sS 'https://api.github.com/repos/{0}/pulls?state=open' | grep -o -E 'pull/[[:digit:]]+' | sed 's/pull\///g'| sort | uniq".format(repo_name) , shell=True).decode('utf-8').split()
+    print ("All Open Pull Requests: ", all_open_pull_requests)
     for pull_request_id in all_open_pull_requests:
-        run('wget https://github.com/{0}/pull/{1}.patch'.format(repo_name,pull_request_id))
-        run('mv {0}.patch {1}/'.format(pull_request_id,external_path))
-        commit_hash = subprocess.check_output("git ls-remote origin 'pull/*/head' | grep 'pull/{0}/head' | tail -1 | awk '{ print $1F }'".format(pull_request_id) , shell=True).decode('utf-8')
+        
+        print()
+        print("Processing:", str(pull_request_id))
+        print('-'*20, flush=True)
+        commit_hash = subprocess.check_output("git ls-remote origin 'pull/*/head' | grep 'pull/{0}/head'".format(pull_request_id) + " | tail -1 | awk '{ print $1F }'" , shell=True).decode('utf-8')
         git_sequence = get_sequence_number(pull_request_id)
         if git_sequence != -1:
             if hash_exists(commit_hash,'pullrequest/temp/{0}/{1}/master'.format(pull_request_id,git_sequence)):
+                print("hash", commit_hash, "already exists in",'pullrequest/temp/{0}/{1}/master'.format(pull_request_id,git_sequence) )
                 continue
-        patchfile='{0}/{1}'.format(external_path,pull_request_id)
+        print()
+        print("Getting Patch")
+        print()
+        run('wget https://github.com/{0}/pull/{1}.patch'.format(repo_name,pull_request_id))
+        run('mv {0}.patch {1}/'.format(pull_request_id,external_path))
+        patchfile='{0}/{1}.patch'.format(external_path,pull_request_id)
+        print("Will try to apply: ", patchfile)
         library_patch_submodules(patchfile, pull_request_id, repo_name,access_token,commit_hash)
+        print()
+        print("Pull Request Handled: ", str(pull_request_id))
+        print('-'*20, flush=True)
+        print("Resetting Branches")
         reset_branches()
+        print("Reset Branches Done!")
 
     
 if __name__ == "__main__":
