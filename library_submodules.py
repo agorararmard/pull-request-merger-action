@@ -92,3 +92,28 @@ def previous_v(v, versions):
     i = vers.index(ov)
     assert i > 0, (i, ov, vers)
     return vers[i-1]
+
+def reset_branches():
+    all_local_branches = subprocess.check_output('git branch' , shell=True).decode('utf-8').split()
+    for branch in all_local_branches:
+        git('reset --hard origin/{0}'.format(branch))
+
+
+def hash_exists(hash, branch,git_root):
+        git('clean -f', git_root)
+        git('clean -x -f', git_root)
+        git('checkout {0}'.format(branch), git_root)
+        if git('branch --contains {hash}', can_fail=True, git_root) == False:
+            return False
+        else:
+            return True
+
+def get_sequence_number(pull_request_id):
+    git_sequence = -1
+    all_branches = subprocess.check_output('git branch -r' , shell=True).decode('utf-8').split()
+    print("All branchs:", all_branches)
+    git_matching_branches = [br for br in all_branches if "origin/pullrequest/temp/{0}/".format(pull_request_id) in br]
+
+    for matching_branch in git_matching_branches:
+        git_sequence = max(int(matching_branch.split("/")[4]), git_sequence)
+    return git_sequence

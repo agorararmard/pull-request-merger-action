@@ -40,17 +40,7 @@ def header(l, s, *args, **kw):
     s2 = l*len(s1)
     return '{}\n{}\n'.format(s1, s2)
 
-
-
-def main(args):
-    assert len(args) == 5
-
-    patchfile = os.path.abspath(args.pop(0))
-    pull_request_id = args.pop(0)
-    repo_name = args.pop(0)
-    access_token = args.pop(0)
-    commit_hash = args.pop(0)
-
+def library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,commit_hash):
     assert os.path.exists(patchfile), patchfile
     assert os.path.isfile(patchfile), patchfile
     assert pull_request_id.isdigit(), pull_request_id
@@ -123,16 +113,8 @@ def main(args):
     git('branch master', git_root)
 
     print('='*75, flush=True)
-    git_sequence = -1
-    all_branches = subprocess.check_output('git branch -r' , shell=True).decode('utf-8').split()
-    print("All branchs:", all_branches)
 
-    git_matching_branches = [br for br in all_branches if "origin/pullrequest/temp/{0}/".format(pull_request_id) in br]
-
-
-    for matching_branch in git_matching_branches:
-        git_sequence = max(int(matching_branch.split("/")[4]), git_sequence)
-    git_sequence = int(git_sequence) + 1
+    git_sequence = int(get_sequence_number(pull_request_id)) + 1
     n_branch_links = ""
     for i, v in enumerate(versions):
         ov = out_v(v, versions)
@@ -161,5 +143,15 @@ def main(args):
     headers = {'Authorization' : 'token {0}'.format(access_token)}
     res = requests.post(url, data=json.dumps(payload), headers=headers)
 
+
+def main(args):
+    assert len(args) == 5
+    patchfile = os.path.abspath(args.pop(0))
+    pull_request_id = args.pop(0)
+    repo_name = args.pop(0)
+    access_token = args.pop(0)
+    commit_hash = args.pop(0)
+    library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,commit_hash)
+    
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
