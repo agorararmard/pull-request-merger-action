@@ -6,6 +6,9 @@ runs:
     - name: Export Pull Request ID Name To Environment
       run: echo "PULL_REQUEST_ID=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
       shell: bash
+    - name: Export Owner/Repo Name To Environment
+      run: echo "BASE_REPO_NAME=${{ github.event.pull_request.base.repo.full_name }}" >> $GITHUB_ENV
+      shell: bash
     - name: Get Pull Request Patch
       run: wget https://github.com/$GITHUB_REPOSITORY/pull/$PULL_REQUEST_ID.patch
       shell: bash
@@ -19,7 +22,7 @@ runs:
       run: |
         echo "Running Now! The Pull Request Patch is $EXTERNAL_PATH/$PULL_REQUEST_ID.patch"
         cd $GITHUB_WORKSPACE
-        python3 ${{ github.action_path }}/library_patch_submodules.py $EXTERNAL_PATH/$PULL_REQUEST_ID.patch $PULL_REQUEST_ID
+        python3 ${{ github.action_path }}/library_patch_submodules.py $EXTERNAL_PATH/$PULL_REQUEST_ID.patch $PULL_REQUEST_ID $BASE_REPO_NAME
       shell: bash
     - name: Push Updates to All Branches
       run: git push --force --all

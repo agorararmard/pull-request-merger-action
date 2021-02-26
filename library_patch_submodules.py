@@ -45,6 +45,7 @@ def main(args):
 
     patchfile = os.path.abspath(args.pop(0))
     pull_request_id = args.pop(0)
+    repo_name = args.pop(0)
 
     assert os.path.exists(patchfile), patchfile
     assert os.path.isfile(patchfile), patchfile
@@ -128,7 +129,7 @@ def main(args):
     for matching_branch in git_matching_branches:
         git_sequence = max(int(matching_branch.split("/")[4]), git_sequence)
     git_sequence = int(git_sequence) + 1
-
+    n_branch_links = ""
     for i, v in enumerate(versions):
         ov = out_v(v, versions)
         v_branch = "branch-{}.{}.{}".format(*ov)
@@ -136,13 +137,17 @@ def main(args):
         print()
         print("Now Pushing", (v_branch, v_tag))
         print('-'*20, flush=True)
-        # Checkout the right branch
+
         n_branch = 'pullrequest/temp/{0}/{1}/{2}'.format(pull_request_id,str(git_sequence),v_branch)
+        branch_link = "https://github.com/{0}/tree/{1}".format(repo_name,n_branch)
+        n_branch_links += " {0}".format(branch_link)
         print("Now Pushing", n_branch)
         git('push -f origin {0}:{1}'.format(v_branch,n_branch), git_root)
 
     print()
     n_branch = 'pullrequest/temp/{0}/{1}/master'.format(pull_request_id,str(git_sequence))
+    branch_link = "https://github.com/{0}/tree/{1}".format(repo_name,n_branch)
+    n_branch_links += " {0}".format(branch_link)
     print("Now Pushing", n_branch)
     print('-'*20, flush=True)
     git('push -f origin master:{0}'.format(n_branch), git_root)
