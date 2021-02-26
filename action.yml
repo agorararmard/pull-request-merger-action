@@ -19,7 +19,7 @@ runs:
       run: |
         echo "Running Now! The Pull Request Patch is $EXTERNAL_PATH/$PULL_REQUEST_ID.patch"
         cd $GITHUB_WORKSPACE
-        python3 ${{ github.action_path }}/library_patch_submodules.py $EXTERNAL_PATH/$PULL_REQUEST_ID.patch $PULL_REQUEST_ID ${{ github.event.pull_request.base.repo.full_name }} ${{ github.token }} ${{ github.sha }} 
+        python3 ${{ github.action_path }}/library_patch_submodules.py $EXTERNAL_PATH/$PULL_REQUEST_ID.patch $PULL_REQUEST_ID ${{ github.event.pull_request.base.repo.full_name }} ${{ github.token }} ${{ github.event.pull_request.head.sha }} 
       shell: bash
     - name: Push Updates to All Branches
       run: git push --force --all
