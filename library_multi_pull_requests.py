@@ -51,20 +51,10 @@ def handle_pull_requests(args):
     print()
     print()
 
-    git_root = subprocess.check_output('git rev-parse --show-toplevel', shell=True)
-    git_root = git_root.decode('utf-8').strip()
+    git_root = get_git_root()
 
-    print()
+    git_fetch(git_root)
 
-    print()
-
-    git('fetch origin', git_root)
-
-    git('fetch origin --tags', git_root)
-
-    git('status', git_root)
-
-    print('-'*20, flush=True)
     all_open_pull_requests = subprocess.check_output("curl -sS 'https://api.github.com/repos/{0}/pulls?state=open' | grep -o -E 'pull/[[:digit:]]+' | sed 's/pull\///g'| sort | uniq".format(repo_name) , shell=True).decode('utf-8').split()
     print ("All Open Pull Requests: ", all_open_pull_requests)
     for pull_request_id in all_open_pull_requests:
@@ -74,8 +64,14 @@ def handle_pull_requests(args):
         commit_hash = subprocess.check_output("git ls-remote origin 'pull/*/head' | grep 'pull/{0}/head'".format(pull_request_id) + " | tail -1 | awk '{ print $1F }'" , shell=True).decode('utf-8')
         git_sequence = get_sequence_number(pull_request_id)
         if git_sequence != -1:
+            # rebase branches & force push here.
+            print("Rebasing PR branches!")
+            library_rebase_submodules(pull_request_id)
             if hash_exists(commit_hash,'pullrequest/temp/{0}/{1}/master'.format(pull_request_id,git_sequence),git_root):
                 print("hash", commit_hash, "already exists in",'pullrequest/temp/{0}/{1}/master'.format(pull_request_id,git_sequence) )
+                if label_exists(repo_name,pull_request_id,'ready-to-merge'):
+                    print("PR {0} is now ready to be merged..".format(pull_request_id))
+                    library_merge_submodules(pull_request_id,repo_name,access_token)
                 continue
         print()
         print("Getting Patch")
@@ -95,20 +91,6 @@ def handle_pull_requests(args):
     print('-'*20, flush=True)
     print("Done Creating PR branches!")
     print('-'*20, flush=True)
-    print("Checking for ready-to-merge PRs!")
-    # Setting ready-to-merge PRs
-    for pull_request_id in all_open_pull_requests:
-        print()
-        print("Processing:", str(pull_request_id))
-        print('-'*20, flush=True)
-        if label_exists(repo_name,pull_request_id,'ready-to-merge'):
-            print("PR {0} is now ready to be merged..".format(pull_request_id))
-            library_merge_submodules(pull_request_id,repo_name,access_token)
-            print("I won't process any more PRs until they are rebased on the new master in the next round of updates.")
-            git_issue_close(repo_name,pull_request_id, access_token)
-            comment_body = 'Thank you for your pull request. This pull request will be closed, because the Pull-Request Merger has successfully applied it internally to all branches.'
-            git_issue_comment(repo_name,pull_request_id,comment_body,access_token)
-
 
 if __name__ == "__main__":
     sys.exit(handle_pull_requests(sys.argv[1:]))

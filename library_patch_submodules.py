@@ -165,7 +165,46 @@ def library_merge_submodules(pull_request_id,repo_name,access_token):
     git('push -f origin master:master', git_root)
     for i in range(git_sequence + 1):
             git('push origin --delete pullrequest/temp/{0}/{1}/master'.format(pull_request_id,str(i)), git_root)
+    git_issue_close(repo_name,pull_request_id, access_token)
+    comment_body = 'Thank you for your pull request. This pull request will be closed, because the Pull-Request Merger has successfully applied it internally to all branches.'
+    git_issue_comment(repo_name,pull_request_id,comment_body,access_token)
 
+def library_rebase_submodules(pull_request_id):
+    print()
+    print()
+    git_root = get_git_root()
+
+    git_fetch(git_root)
+
+    versions = get_lib_versions(git_root)
+    for i, v in enumerate(versions):
+        pv = previous_v(v, versions)
+        ov = out_v(v, versions)
+
+        v_branch = "branch-{}.{}.{}".format(*ov)
+        v_tag = "v{}.{}.{}".format(*ov)
+        git_sequence = int(get_sequence_number(pull_request_id))
+        n_branch = 'pullrequest/temp/{0}/{1}/{2}'.format(pull_request_id,str(git_sequence),v_branch)
+        print()
+        print("Was:", pv, "Now rebasing ", n_branch , " with ", (v_branch, v_tag))
+        print('-'*20, flush=True)
+
+        # Get us back to a very clean tree.
+        # git('reset --hard HEAD', git_root)
+        git_clean(git_root)
+
+        # Checkout the right branch
+        git('checkout {0}'.format(n_branch), git_root)
+        git('rebase origin/{0}'.format(v_branch), git_root)
+        print("Now Pushing", n_branch)
+        git('push -f origin {0}:{0}'.format(n_branch,n_branch), git_root)
+
+    git_clean(git_root)
+    n_branch = 'pullrequest/temp/{0}/{1}/master'.format(pull_request_id,str(git_sequence))
+    git('checkout {0}'.format(n_branch), git_root)
+    git('rebase origin/master', git_root)
+    print("Now Pushing", n_branch)
+    git('push -f origin {0}:{0}'.format(n_branch,n_branch), git_root)
 
 def main(args):
     assert len(args) == 5
