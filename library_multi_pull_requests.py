@@ -75,16 +75,16 @@ def handle_pull_requests(args):
         run('mv {0}.patch {1}/'.format(pull_request_id,external_path))
         patchfile='{0}/{1}.patch'.format(external_path,pull_request_id)
         print("Will try to apply: ", patchfile)
-        library_patch_submodules(patchfile, pull_request_id, repo_name,access_token,commit_hash,sequence_increment)
-        print()
-        print("Pull Request Handled: ", str(pull_request_id))
-        print('-'*20, flush=True)
-        print("Resetting Branches")
-        reset_branches(git_root)
-        print("Reset Branches Done!")
-        if label_exists(repo_name,pull_request_id,'ready-to-merge'):
-            print("PR {0} is now ready to be merged..".format(pull_request_id))
-            library_merge_submodules(pull_request_id,repo_name,access_token)
+        if library_patch_submodules(patchfile, pull_request_id, repo_name,access_token,commit_hash,sequence_increment):
+            print()
+            print("Pull Request Handled: ", str(pull_request_id))
+            print('-'*20, flush=True)
+            print("Resetting Branches")
+            reset_branches(git_root)
+            print("Reset Branches Done!")
+            if label_exists(repo_name,pull_request_id,'ready-to-merge'):
+                print("PR {0} is now ready to be merged..".format(pull_request_id))
+                library_merge_submodules(pull_request_id,repo_name,access_token)
 
     print('-'*20, flush=True)
     print("Done Creating PR branches!")

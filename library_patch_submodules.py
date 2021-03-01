@@ -110,7 +110,10 @@ def library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,c
         branch_link = "https://github.com/{0}/tree/{1}".format(repo_name,n_branch)
         n_branch_links += "\n- {0}".format(branch_link)
         print("Now Pushing", n_branch)
-        git('push -f origin {0}:{1}'.format(v_branch,n_branch), git_root)
+        if git('push -f origin {0}:{1}'.format(v_branch,n_branch), git_root, can_fail=True) == False:
+            print("Pull Request {0} is coming from a fork and trying to update the workflow. We will skip it!!!")
+            return False
+    return True
 
     print()
     n_branch = 'pullrequest/temp/{0}/{1}/master'.format(pull_request_id,str(git_sequence))
