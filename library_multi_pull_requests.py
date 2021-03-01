@@ -67,7 +67,6 @@ def handle_pull_requests(args):
         if git_sequence != -1:
             if hash_exists(commit_hash,'pullrequest/temp/{0}/{1}/master'.format(pull_request_id,git_sequence),git_root):
                 sequence_increment = 0
-                continue
         print()
         print("Getting Patch")
         print()
