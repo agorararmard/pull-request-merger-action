@@ -113,7 +113,6 @@ def library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,c
         if git('push -f origin {0}:{1}'.format(v_branch,n_branch), git_root, can_fail=True) == False:
             print("Pull Request {0} is coming from a fork and trying to update the workflow. We will skip it!!!")
             return False
-    return True
 
     print()
     n_branch = 'pullrequest/temp/{0}/{1}/master'.format(pull_request_id,str(git_sequence))
@@ -121,10 +120,13 @@ def library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,c
     n_branch_links += "\n- {0}".format(branch_link)
     print("Now Pushing", n_branch)
     print('-'*20, flush=True)
-    git('push -f origin master:{0}'.format(n_branch), git_root)
-
+    if git('push -f origin master:{0}'.format(n_branch), git_root, can_fail=True) == False:
+        print("Pull Request {0} is coming from a fork and trying to update the workflow. We will skip it!!!")
+        return False
     comment_body = 'The latest commit of this PR, commit {0} has been applied to the branches, please check the links here:\n {1}'.format( commit_hash, n_branch_links)
     git_issue_comment(repo_name,pull_request_id,comment_body,access_token)
+    return True
+
 
 def library_merge_submodules(pull_request_id,repo_name,access_token):
     print()
