@@ -40,7 +40,7 @@ def header(l, s, *args, **kw):
     s2 = l*len(s1)
     return '{}\n{}\n'.format(s1, s2)
 
-def library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,commit_hash):
+def library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,commit_hash,sequence_increment):
     assert os.path.exists(patchfile), patchfile
     assert os.path.isfile(patchfile), patchfile
     assert pull_request_id.isdigit(), pull_request_id
@@ -96,7 +96,7 @@ def library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,c
 
     print('='*75, flush=True)
 
-    git_sequence = int(get_sequence_number(pull_request_id)) + 1
+    git_sequence = int(get_sequence_number(pull_request_id)) + sequence_increment
     n_branch_links = ""
     for i, v in enumerate(versions):
         ov = out_v(v, versions)
@@ -213,7 +213,7 @@ def main(args):
     repo_name = args.pop(0)
     access_token = args.pop(0)
     commit_hash = args.pop(0)
-    library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,commit_hash)
+    library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,commit_hash,1)
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))

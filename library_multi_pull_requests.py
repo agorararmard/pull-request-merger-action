@@ -63,15 +63,10 @@ def handle_pull_requests(args):
         print('-'*20, flush=True)
         commit_hash = subprocess.check_output("git ls-remote origin 'pull/*/head' | grep 'pull/{0}/head'".format(pull_request_id) + " | tail -1 | awk '{ print $1F }'" , shell=True).decode('utf-8')
         git_sequence = get_sequence_number(pull_request_id)
+        sequence_increment = 1
         if git_sequence != -1:
-            # rebase branches & force push here.
-            print("Rebasing PR branches!")
-            library_rebase_submodules(pull_request_id)
             if hash_exists(commit_hash,'pullrequest/temp/{0}/{1}/master'.format(pull_request_id,git_sequence),git_root):
-                print("hash", commit_hash, "already exists in",'pullrequest/temp/{0}/{1}/master'.format(pull_request_id,git_sequence) )
-                if label_exists(repo_name,pull_request_id,'ready-to-merge'):
-                    print("PR {0} is now ready to be merged..".format(pull_request_id))
-                    library_merge_submodules(pull_request_id,repo_name,access_token)
+                sequence_increment = 0
                 continue
         print()
         print("Getting Patch")
@@ -80,13 +75,16 @@ def handle_pull_requests(args):
         run('mv {0}.patch {1}/'.format(pull_request_id,external_path))
         patchfile='{0}/{1}.patch'.format(external_path,pull_request_id)
         print("Will try to apply: ", patchfile)
-        library_patch_submodules(patchfile, pull_request_id, repo_name,access_token,commit_hash)
+        library_patch_submodules(patchfile, pull_request_id, repo_name,access_token,commit_hash,sequence_increment)
         print()
         print("Pull Request Handled: ", str(pull_request_id))
         print('-'*20, flush=True)
         print("Resetting Branches")
         reset_branches(git_root)
         print("Reset Branches Done!")
+        if label_exists(repo_name,pull_request_id,'ready-to-merge'):
+            print("PR {0} is now ready to be merged..".format(pull_request_id))
+            library_merge_submodules(pull_request_id,repo_name,access_token)
 
     print('-'*20, flush=True)
     print("Done Creating PR branches!")
