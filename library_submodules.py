@@ -22,6 +22,8 @@ import os
 import subprocess
 import sys
 import time
+import requests
+import json
 
 libraries = {
     "sky130_fd_pr": 'SKY130 Primitive Models and Cells',
@@ -118,3 +120,55 @@ def get_sequence_number(pull_request_id):
     for matching_branch in git_matching_branches:
         git_sequence = max(int(matching_branch.split("/")[4]), git_sequence)
     return git_sequence
+
+def label_exists(repo_name,pull_request_id, label):
+    r = requests.get('https://api.github.com/repos/{0}/issues/{1}/labels'.format(repo_name,pull_request_id))
+    for item in r.json():
+        if item['name'] == label:
+            return True
+    return False
+
+
+def git_issue_comment(repo_name,pull_request_id,body, access_token):
+    url     = 'https://api.github.com/repos/{0}/issues/{1}/comments'.format( repo_name, pull_request_id)
+    payload = { 'body' : body }
+    headers = {'Authorization' : 'token {0}'.format(access_token)}
+    res = requests.post(url, data=json.dumps(payload), headers=headers)
+
+def git_issue_close(repo_name,pull_request_id, access_token):
+    url     = 'https://api.github.com/repos/{0}/issues/{1}'.format( repo_name, pull_request_id)
+    payload = { 'state' : 'closed' }
+    headers = {'Authorization' : 'token {0}'.format(access_token)}
+    res = requests.post(url, data=json.dumps(payload), headers=headers)
+
+def get_git_root():
+    return subprocess.check_output('git rev-parse --show-toplevel', shell=True).decode('utf-8').strip()
+
+
+def git_fetch(git_root):
+    print()
+
+    print()
+
+    git('fetch origin', git_root)
+
+    git('fetch origin --tags', git_root)
+
+    git('status', git_root)
+
+    print('-'*20, flush=True)
+
+
+def get_lib_versions(git_root):
+    tags = subprocess.check_output('git tag -l', shell=True, cwd=git_root)
+
+    tags = tags.decode('utf-8')
+
+    versions = [tuple(int(i) for i in v[1:].split('.')) for v in tags.split()]
+    if (0,0,0) in versions:
+        versions.remove((0,0,0))
+    return versions
+
+def git_clean(git_root):
+    git('clean -f', git_root)
+    git('clean -x -f', git_root)

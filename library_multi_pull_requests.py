@@ -68,7 +68,6 @@ def handle_pull_requests(args):
     all_open_pull_requests = subprocess.check_output("curl -sS 'https://api.github.com/repos/{0}/pulls?state=open' | grep -o -E 'pull/[[:digit:]]+' | sed 's/pull\///g'| sort | uniq".format(repo_name) , shell=True).decode('utf-8').split()
     print ("All Open Pull Requests: ", all_open_pull_requests)
     for pull_request_id in all_open_pull_requests:
-        
         print()
         print("Processing:", str(pull_request_id))
         print('-'*20, flush=True)
@@ -93,6 +92,23 @@ def handle_pull_requests(args):
         reset_branches(git_root)
         print("Reset Branches Done!")
 
-    
+    print('-'*20, flush=True)
+    print("Done Creating PR branches!")
+    print('-'*20, flush=True)
+    print("Checking for ready-to-merge PRs!")
+    # Setting ready-to-merge PRs
+    for pull_request_id in all_open_pull_requests:
+        print()
+        print("Processing:", str(pull_request_id))
+        print('-'*20, flush=True)
+        if label_exists(repo_name,pull_request_id,'ready-to-merge'):
+            print("PR {0} is now ready to be merged..".format(pull_request_id))
+            library_merge_submodules(pull_request_id,repo_name,access_token)
+            print("I won't process any more PRs until they are rebased on the new master in the next round of updates.")
+            git_issue_close(repo_name,pull_request_id, access_token)
+            comment_body = 'Thank you for your pull request. This pull request will be closed, because the Pull-Request Merger has successfully applied it internally to all branches.'
+            git_issue_comment(repo_name,pull_request_id,comment_body,access_token)
+
+
 if __name__ == "__main__":
     sys.exit(handle_pull_requests(sys.argv[1:]))

@@ -47,29 +47,12 @@ def library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,c
 
     print()
     print()
+    git_root = get_git_root()
 
-    git_root = subprocess.check_output('git rev-parse --show-toplevel', shell=True)
-    git_root = git_root.decode('utf-8').strip()
+    git_fetch(git_root)
 
-    print()
+    versions = get_lib_versions(git_root)
 
-    print()
-
-    git('fetch origin', git_root)
-
-    git('fetch origin --tags', git_root)
-
-    git('status', git_root)
-
-    print('-'*20, flush=True)
-
-    tags = subprocess.check_output('git tag -l', shell=True, cwd=git_root)
-
-    tags = tags.decode('utf-8')
-
-    versions = [tuple(int(i) for i in v[1:].split('.')) for v in tags.split()]
-    if (0,0,0) in versions:
-        versions.remove((0,0,0))
     apply_idx=0
     for i, v in enumerate(versions):
         pv = previous_v(v, versions)
@@ -84,8 +67,7 @@ def library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,c
 
         # Get us back to a very clean tree.
         # git('reset --hard HEAD', git_root)
-        git('clean -f', git_root)
-        git('clean -x -f', git_root)
+        git_clean(git_root)
 
         # Checkout the right branch
         git('checkout {0}'.format(v_branch), git_root)
@@ -138,10 +120,49 @@ def library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,c
     print('-'*20, flush=True)
     git('push -f origin master:{0}'.format(n_branch), git_root)
 
-    url     = 'https://api.github.com/repos/{0}/issues/{1}/comments'.format( repo_name, pull_request_id)
-    payload = { 'body' : 'The latest commit of this PR, commit {0} has been applied to the branches, please check the links here:\n {1}'.format( commit_hash, n_branch_links) }
-    headers = {'Authorization' : 'token {0}'.format(access_token)}
-    res = requests.post(url, data=json.dumps(payload), headers=headers)
+    comment_body = 'The latest commit of this PR, commit {0} has been applied to the branches, please check the links here:\n {1}'.format( commit_hash, n_branch_links)
+    git_issue_comment(repo_name,pull_request_id,comment_body,access_token)
+
+def library_merge_submodules(pull_request_id,repo_name,access_token):
+    print()
+    print()
+    git_root = get_git_root()
+
+    git_fetch(git_root)
+
+    versions = get_lib_versions(git_root)
+    for i, v in enumerate(versions):
+        pv = previous_v(v, versions)
+        ov = out_v(v, versions)
+
+        v_branch = "branch-{}.{}.{}".format(*ov)
+        v_tag = "v{}.{}.{}".format(*ov)
+        git_sequence = int(get_sequence_number(pull_request_id))
+        n_branch = 'pullrequest/temp/{0}/{1}/{2}'.format(pull_request_id,str(git_sequence),v_branch)
+        print()
+        print("Was:", pv, "Now updating", (v_branch, v_tag), "with", n_branch)
+        print('-'*20, flush=True)
+
+        # Get us back to a very clean tree.
+        # git('reset --hard HEAD', git_root)
+        git_clean(git_root)
+
+        # Checkout the right branch
+        git('checkout {0}'.format(v_branch), git_root)
+        print("Now reseting ", v_branch, " to ", n_branch)
+        git('reset --hard origin/{0}'.format(n_branch),git_root)
+        print("Now Pushing", v_branch)
+        git('push -f origin {0}:{0}'.format(v_branch,v_branch), git_root)
+
+    git_clean(git_root)
+    n_branch = 'pullrequest/temp/{0}/{1}/master'.format(pull_request_id,str(git_sequence))
+    git('checkout master', git_root)
+    print("Now reseting master to ", n_branch)
+    git('reset --hard origin/{0}'.format(n_branch),git_root)
+    print("Now Pushing", v_branch)
+    git('push -f origin master:master', git_root)
+
+
 
 
 def main(args):
@@ -152,6 +173,6 @@ def main(args):
     access_token = args.pop(0)
     commit_hash = args.pop(0)
     library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,commit_hash)
-    
+
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))
