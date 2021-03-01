@@ -153,6 +153,8 @@ def library_merge_submodules(pull_request_id,repo_name,access_token):
         git('reset --hard origin/{0}'.format(n_branch),git_root)
         print("Now Pushing", v_branch)
         git('push -f origin {0}:{0}'.format(v_branch,v_branch), git_root)
+        for i in range(git_sequence + 1):
+            git('push origin --delete pullrequest/temp/{0}/{1}/{2}'.format(pull_request_id,str(i),v_branch), git_root)
 
     git_clean(git_root)
     n_branch = 'pullrequest/temp/{0}/{1}/master'.format(pull_request_id,str(git_sequence))
@@ -161,8 +163,8 @@ def library_merge_submodules(pull_request_id,repo_name,access_token):
     git('reset --hard origin/{0}'.format(n_branch),git_root)
     print("Now Pushing", v_branch)
     git('push -f origin master:master', git_root)
-
-
+    for i in range(git_sequence + 1):
+            git('push origin --delete pullrequest/temp/{0}/{1}/master'.format(pull_request_id,str(i)), git_root)
 
 
 def main(args):
