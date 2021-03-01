@@ -64,9 +64,6 @@ def handle_pull_requests(args):
         commit_hash = subprocess.check_output("git ls-remote origin 'pull/*/head' | grep 'pull/{0}/head'".format(pull_request_id) + " | tail -1 | awk '{ print $1F }'" , shell=True).decode('utf-8')
         git_sequence = get_sequence_number(pull_request_id)
         sequence_increment = 1
-        if git_sequence != -1:
-            if hash_exists(commit_hash,'pullrequest/temp/{0}/{1}/master'.format(pull_request_id,git_sequence),git_root):
-                sequence_increment = 0
         print()
         print("Getting Patch")
         print()
