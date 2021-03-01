@@ -98,7 +98,7 @@ def previous_v(v, versions):
 def reset_branches(git_root):
     all_local_branches = subprocess.check_output('git branch' , shell=True).decode('utf-8').split()
     for branch in all_local_branches:
-        if branch != "*":
+        if branch != "*" and not branch.startswith('pullrequest/temp/'):
             git('checkout {0}'.format(branch), git_root)
             git('reset --hard origin/{0}'.format(branch), git_root)
 
