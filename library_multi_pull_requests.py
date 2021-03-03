@@ -57,19 +57,23 @@ def handle_pull_requests(args):
 
     all_open_pull_requests = subprocess.check_output("curl -sS 'https://api.github.com/repos/{0}/pulls?state=open' | grep -o -E 'pull/[[:digit:]]+' | sed 's/pull\///g'| sort | uniq".format(repo_name) , shell=True).decode('utf-8').split()
     print ("All Open Pull Requests: ", all_open_pull_requests)
+    library_clean_submodules(all_open_pull_requests)
     for pull_request_id in all_open_pull_requests:
         print()
         print("Processing:", str(pull_request_id))
         print('-'*20, flush=True)
         commit_hash = subprocess.check_output("git ls-remote origin 'pull/*/head' | grep 'pull/{0}/head'".format(pull_request_id) + " | tail -1 | awk '{ print $1F }'" , shell=True).decode('utf-8')
         git_sequence = get_sequence_number(pull_request_id)
-        sequence_increment = 1
         print()
         print("Getting Patch")
         print()
         run('wget https://github.com/{0}/pull/{1}.patch'.format(repo_name,pull_request_id))
         run('mv {0}.patch {1}/'.format(pull_request_id,external_path))
         patchfile='{0}/{1}.patch'.format(external_path,pull_request_id)
+        sequence_increment = 1
+        if git_sequence != -1:
+            if patch_exists(pull_request_id,git_sequence,patchfile,git_root):
+                sequence_increment = 0
         print("Will try to apply: ", patchfile)
         if library_patch_submodules(patchfile, pull_request_id, repo_name,access_token,commit_hash,sequence_increment):
             print()

@@ -104,11 +104,27 @@ def reset_branches(git_root):
 
 
 def hash_exists(hash, branch,git_root):
-        git('checkout {0}'.format(branch), git_root)
-        if git('branch --contains {0}'.format(hash), git_root, can_fail=True) == False:
-            return False
-        else:
-            return True
+    git('checkout {0}'.format(branch), git_root)
+    if git('branch --contains {0}'.format(hash), git_root, can_fail=True) == False:
+        return False
+    else:
+        return True
+
+def patch_exists(pull_request_id,git_sequence,patchfile,git_root):
+    pr_branch='pullrequest/temp/{0}/{1}/master'.format(pull_request_id,str(git_sequence))
+    git('checkout {0}'.format(pr_branch),git_root)
+    internal_patch = subprocess.check_output('git diff master...{0}'.format(pr_branch) , shell=True).decode('utf-8').split()
+    print(internal_patch)
+    print('**********************')
+    print()
+    print()
+    with open(patchfile, 'r') as openedpatchfile:
+        external_patch = str("diff --git"+openedpatchfile.read().split("diff --git",1)[1]).split()
+    print(external_patch)
+    print('**********************')
+    print()
+    print()
+    return external_patch == internal_patch
 
 def get_sequence_number(pull_request_id):
     git_sequence = -1

@@ -211,6 +211,21 @@ def library_rebase_submodules(pull_request_id):
     print("Now Pushing", n_branch)
     git('push -f origin {0}:{0}'.format(n_branch,n_branch), git_root)
 
+def library_clean_submodules(all_open_pull_requests):
+    print()
+    print()
+    print("Cleaning up pull request branches for closed pull requests.")
+    git_root = get_git_root()
+
+    git_fetch(git_root)
+
+    all_branches = subprocess.check_output('git branch -r' , shell=True).decode('utf-8').split()
+    print("All branchs:", all_branches)
+    for br in all_branches:
+         if "origin/pullrequest/temp/" in br and br.split('/')[3] not in all_open_pull_requests:
+            print('Deleting ', br)
+            git('push origin --delete {0}'.format(br), git_root)
+
 def main(args):
     assert len(args) == 5
     patchfile = os.path.abspath(args.pop(0))
