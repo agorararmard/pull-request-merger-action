@@ -70,12 +70,8 @@ def handle_pull_requests(args):
         run('wget https://github.com/{0}/pull/{1}.patch'.format(repo_name,pull_request_id))
         run('mv {0}.patch {1}/'.format(pull_request_id,external_path))
         patchfile='{0}/{1}.patch'.format(external_path,pull_request_id)
-        sequence_increment = 1
-        if git_sequence != -1:
-            if patch_exists(pull_request_id,git_sequence,patchfile,git_root):
-                sequence_increment = 0
         print("Will try to apply: ", patchfile)
-        if library_patch_submodules(patchfile, pull_request_id, repo_name,access_token,commit_hash,sequence_increment):
+        if library_patch_submodules(patchfile, pull_request_id, repo_name,access_token,commit_hash):
             print()
             print("Pull Request Handled: ", str(pull_request_id))
             print('-'*20, flush=True)

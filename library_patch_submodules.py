@@ -40,7 +40,7 @@ def header(l, s, *args, **kw):
     s2 = l*len(s1)
     return '{}\n{}\n'.format(s1, s2)
 
-def library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,commit_hash,sequence_increment):
+def library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,commit_hash):
     assert os.path.exists(patchfile), patchfile
     assert os.path.isfile(patchfile), patchfile
     assert pull_request_id.isdigit(), pull_request_id
@@ -95,8 +95,18 @@ def library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,c
     git('branch master', git_root)
 
     print('='*75, flush=True)
-
-    git_sequence = int(get_sequence_number(pull_request_id)) + sequence_increment
+    old_git_sequence = int(get_sequence_number(pull_request_id))
+    sequence_increment = 1
+    if old_git_sequence != -1:
+        old_pr_branch='pullrequest/temp/{0}/{1}/master'.format(pull_request_id,str(old_git_sequence))
+        git('checkout {0}'.format(old_pr_branch),git_root)
+        internal_patch = subprocess.check_output('git diff {0}..master'.format(old_pr_branch) , shell=True).decode('utf-8').split()
+        print(internal_patch)
+        print('**********************')
+        if not len(internal_patch):
+            sequence_increment = 0
+        print(sequence_increment)
+    git_sequence = old_git_sequence + sequence_increment
     n_branch_links = ""
     for i, v in enumerate(versions):
         ov = out_v(v, versions)
@@ -234,7 +244,7 @@ def main(args):
     repo_name = args.pop(0)
     access_token = args.pop(0)
     commit_hash = args.pop(0)
-    library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,commit_hash,1)
+    library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,commit_hash)
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))

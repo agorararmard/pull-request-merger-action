@@ -110,17 +110,6 @@ def hash_exists(hash, branch,git_root):
     else:
         return True
 
-def patch_exists(pull_request_id,git_sequence,patchfile,git_root):
-    pr_branch='pullrequest/temp/{0}/{1}/master'.format(pull_request_id,str(git_sequence))
-    git('checkout {0}'.format(pr_branch),git_root)
-    internal_patch = subprocess.check_output('git diff master...{0}'.format(pr_branch) , shell=True).decode('utf-8').split()
-    print(internal_patch)
-    print('**********************')
-    with open(patchfile, 'r') as openedpatchfile:
-        external_patch = str("diff --git"+openedpatchfile.read().split("diff --git",1)[1]).split()
-    print(external_patch)
-    print('**********************')
-    return external_patch == internal_patch
 
 def get_sequence_number(pull_request_id):
     git_sequence = -1
