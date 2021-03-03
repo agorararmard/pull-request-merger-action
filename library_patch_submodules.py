@@ -123,8 +123,9 @@ def library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,c
     if git('push -f origin master:{0}'.format(n_branch), git_root, can_fail=True) == False:
         print("Pull Request {0} is coming from a fork and trying to update the workflow. We will skip it!!!")
         return False
-    comment_body = 'The latest commit of this PR, commit {0} has been applied to the branches, please check the links here:\n {1}'.format( commit_hash, n_branch_links)
-    git_issue_comment(repo_name,pull_request_id,comment_body,access_token)
+    if sequence_increment:
+        comment_body = 'The latest commit of this PR, commit {0} has been applied to the branches, please check the links here:\n {1}'.format( commit_hash, n_branch_links)
+        git_issue_comment(repo_name,pull_request_id,comment_body,access_token)
     return True
 
 
