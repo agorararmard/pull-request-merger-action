@@ -225,7 +225,7 @@ def library_clean_submodules(all_open_pull_requests):
     for br in all_branches:
          if "origin/pullrequest/temp/" in br and br.split('/')[3] not in all_open_pull_requests:
             print('Deleting ', br)
-            git('push origin --delete {0}'.format(br), git_root)
+            git('push origin --delete {0}'.format(br.split('origin/',1)[1]), git_root)
 
 def main(args):
     assert len(args) == 5
