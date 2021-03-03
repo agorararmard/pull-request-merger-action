@@ -52,7 +52,7 @@ def library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,c
     git_fetch(git_root)
 
     versions = get_lib_versions(git_root)
-
+    failed = True
     apply_idx=0
     for i, v in enumerate(versions):
         pv = previous_v(v, versions)
@@ -85,12 +85,13 @@ def library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,c
             if git('am {}'.format(patchfile), git_root, can_fail=True) == False:
                 apply_idx+=1
                 git('am --abort', git_root)
+            failed = False
             continue
-
         # Create the merge commit
         git('merge {} --no-ff --no-commit --strategy=recursive'.format(diff_pos), git_root)
         git('commit -C HEAD@{1}', git_root)
-
+    if failed:
+        return False
     git('branch -D master', git_root, can_fail=True)
     git('branch master', git_root)
 
@@ -100,7 +101,7 @@ def library_patch_submodules(patchfile, pull_request_id,repo_name,access_token,c
     if old_git_sequence != -1:
         old_pr_branch='pullrequest/temp/{0}/{1}/master'.format(pull_request_id,str(old_git_sequence))
         git('checkout {0}'.format(old_pr_branch),git_root)
-        internal_patch = subprocess.check_output('git diff {0}..master'.format(old_pr_branch) , shell=True).decode('utf-8').split()
+        internal_patch = subprocess.check_output('git diff {0}..master'.format(old_pr_branch) , shell=True).decode('utf-8').strip()
         print(internal_patch)
         print('**********************')
         if not len(internal_patch):
